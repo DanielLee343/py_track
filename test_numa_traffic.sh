@@ -103,11 +103,11 @@ $cmd_prefix $python_bin $HOME/workspace/py_track/workload/$workload_file $gc_sta
 check_pid=$!
 
 # gen_bw $check_pid &
-spawn_perf_stat.sh $check_pid $workload_name &
-sudo ./spawn_pcm.sh $check_pid $workload_name
+# spawn_perf_stat.sh $check_pid $workload_name &
+# sudo ./spawn_pcm.sh $check_pid $workload_name
 # sleep 2
-# gen_fp $check_pid &
-# get_all_rss $check_pid
+gen_fp $check_pid &
+get_all_rss $check_pid
 # get_DRAM_size $check_pid
 
 # if [ -n "$enable_pypper" ]; then

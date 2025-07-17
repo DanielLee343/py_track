@@ -116,7 +116,7 @@ session.commit()
 if is_pypper and enable_tracing:
     gc_count_module.close_count_gc_list()
 assign_time = time.time() - start_assigning
-print(f"Assign time: {assign_time:.2f} seconds")
+print(f"Compute time: {assign_time:.2f} seconds")
 os.remove("complex_database.db")
 
 # start_query = time.time()

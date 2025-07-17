@@ -1,5 +1,4 @@
 #!/bin/bash
-# echo 2 | sudo tee /proc/sys/vm/panic_on_oom
 solution=$1
 LOG_FILE=out.txt
 EMT_METADATA="no_extra"
@@ -7,14 +6,18 @@ cmd_prefix="numactl --cpunodebind 0 --preferred 0 -- "
 
 source setup_env.sh $solution $$
 
-# workloads=("bm_sqlalchemy")
-workloads=("bm_sqlalchemy_user_insert")
-# workloads=("bm_sqlalchemy" "bm_sqlalchemy_new" "bm_sqlalchemy_user_insert" "networkx_astar" "networkx_bellman" "networkx_bfs_rand" "networkx_bfs" "networkx_bidirectional" "networkx_kc" "networkx_lc" "networkx_sp")
-# "bm_sqlalchemy_user_update" "bm_sqlalchemy_user_update_v2" "bm_sqlalchemy_user_delete"
+workloads=("networkx_astar")
+# workloads=("networkx_astar" "networkx_bellman" "networkx_bfs_rand" "networkx_bfs" "networkx_bidirectional" "networkx_kc" "networkx_lc" "networkx_sp" "bm_sqlalchemy" "bm_sqlalchemy_new" "bm_sqlalchemy_user_insert")
 # mem_splits=("25" "50" "75" "100")
-mem_splits=("75")
+# mem_splits=("25" "50" "75")
+mem_splits=("50")
 gen_with_traces() {
     for wl in "${workloads[@]}"; do
+        if [ "$solution" = "pypper" ] && [[ $wl == bm_sqlalchemy* ]]; then
+            pushd $HOME/cpython/python
+            ./rebuild.sh 1 3 0 1 >/dev/null 2>&1
+            popd
+        fi
         for split in "${mem_splits[@]}"; do
             for runs in {1..1}; do
                 if [ "$solution" = "pypper" ] && [ "$split" != "100" ]; then
@@ -24,6 +27,7 @@ gen_with_traces() {
                 echo "----------running $wl w/ $split-------------"
                 pkill -9 memeater
                 echo 3 | sudo tee /proc/sys/vm/drop_caches
+                cat /proc/vmstat | grep pgmigrate_success
 
                 if [ "$solution" = "memtis" ]; then
                     source setup_env.sh $solution $$
@@ -45,22 +49,13 @@ gen_with_traces() {
                     echo "killing memeaterr"
                     kill -9 $MEMAETER_PID
                 fi
-                # ./test_numa_traffic.sh base pypper ${wl} with_gc 1
 
                 if [ "$solution" = "memtis" ]; then
                     sudo memtis_scripts/set_htmm_memcg.sh htmm $$ disable
                 fi
-                sleep 10
 
-                # echo 3 | sudo tee /proc/sys/vm/drop_caches
-                # echo "----------running $wl w/ gc cxl -------------"
-                # ./test_numa_traffic.sh cxl normal ${wl} with_gc
-                # sleep 3
-
-                # echo "----------running damo $wl w/o gc -------------"
-                # ./do_damo.sh base ${wl} no_gc
-                # echo "----------running damo $wl w/ gc -------------"
-                # ./do_damo.sh base ${wl} with_gc
+                # cat /proc/vmstat | grep pgmigrate_success
+                sleep 3
             done
         done
     done
@@ -75,5 +70,3 @@ dry_run() {
 
 echo "Start running $solution ***************" >>$LOG_FILE 2>&1
 gen_with_traces >>$LOG_FILE 2>&1
-
-# dry_run >>out.txt 2>&1

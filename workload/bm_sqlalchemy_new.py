@@ -94,7 +94,7 @@ print(f"Creating data time: {add_time:.2f} seconds", file=sys.stderr)
 start_assigning = time.time()
 if is_pypper and enable_tracing:
     gc_count_module.start_count_gc_list(
-        250_000, "obj_dump.txt", 0, 1024, 1_000_000, 5)
+        250_000, "obj_dump.txt", 0, 1024, 100_000, 5)
 for _ in range(50000):
     table = Table(
         number=fake.building_number(),
